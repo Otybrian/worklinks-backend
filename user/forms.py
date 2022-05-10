@@ -32,10 +32,10 @@ class UpdateUserForm(forms.ModelForm):
         fields = ('username', 'email')
 
 
-class UpdateUserProfileForm(forms.ModelForm):
-    class Meta:
-        model = Profile
-        fields = ['full_name','profile_image','contact','email','bio','resume','skills','work_experience','address','referees']
+# class UpdateUserProfileForm(forms.ModelForm):
+#     class Meta:
+#         model = Profile
+#         fields = ['full_name','profile_image','contact','email','bio','resume','skills','work_experience','address','referees']
         
 class PostForm(forms.ModelForm):
     class Meta:
@@ -43,9 +43,26 @@ class PostForm(forms.ModelForm):
         fields = ['title']
 
 class EmployeeForm(forms.ModelForm):
-    class Meta:
-        model = Employer
-        fields = ['name']
+    company_name = forms.CharField(required=True)
+    company_website = forms.CharField(required=True)
+    email = forms.CharField(required=True)
+
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ['username',  'email', 'password']
+
+    
+    def save(self):
+        user = super().save(commit=False)
+        user.is_employer = True
+        user.company_name = self.cleaned_data.get('first_name')
+        user.company_website = self.cleaned_data.get('last_name')
+        user.save()
+        employer = Employer.objects.create(user=user)
+        employer.email = self.cleaned_data.get('email')
+        employer.save()
+
+        return employer
 
 class JobseekerForm(forms.ModelForm):
     first_name = forms.CharField(required=True)
@@ -72,9 +89,19 @@ class JobseekerForm(forms.ModelForm):
 class JobForm(forms.ModelForm):
     class Meta:
         model = Job
-        exclude = ('id', 'Title','Requirements','Location', 'Job Type')
+        fields = ('title', 'location', 'requirements', 'jobtype')
 
 class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
         exclude = ['user']
+
+class UpdateUserProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['full_name','profile_image','email','bio','resume','skills','work_experience','address','referees']
+
+class UpdateEmployerProfileForm(forms.ModelForm):
+    class Meta:
+        model = Employer
+        fields = ['company_name', 'email', 'contact', 'location', 'address', 'company_bio', 'company_pic', 'website']

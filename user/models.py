@@ -22,14 +22,17 @@ class User(AbstractUser):
     def save_user(self):
         self.save()
 
+    def create_user(self):
+        self.create_user()
+
     def update_user(self):
-        self.update()
+        self.update_user()
 
     def delete_user(self):
         self.delete()
 
-#     def __str__(self):
-#         return self.username
+    def __str__(self):
+        return self.username
 
 
 @receiver(post_save, sender=AUTH_USER_MODEL)
@@ -39,16 +42,28 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 
 
 class Profile(models.Model):
+    EXPRIENCE_LEVEL= [
+        ('Less than a year', 'Less than a year'),
+        ('one to three year','1 to 3'),
+        ('three to five years','3 to 5 years'),
+        ('Five years and more','  5+ years'),
+      ]
+    SKILL_TYPE= [
+        ('Cognitive', 'Cognitive Skills'),
+        ('Management','Management Skills'),
+        ('Interpersonal','Interpersonal Skills'),
+        ('Other skills','Other skills'),
+      ]
     id = models.IntegerField(User, primary_key=True)
     full_name = models.CharField(max_length=255)
-    contact = PhoneNumberField(null=False, blank=False, unique=True)
+    contact = models.CharField(max_length=30,  blank=True)
     email = models.CharField(max_length=255)
-    bio = models.CharField(max_length=255)
-    work_experience = models.CharField(max_length=255, blank=True)
-    profile_image = CloudinaryField('image')
+    bio = models.TextField(max_length=255)
+    work_experience = models.TextField(max_length=30, choices=EXPRIENCE_LEVEL)
+    profile_image =models.FileField(blank=True)
     address = models.CharField(max_length=100)
     resume = models.FileField(blank=True)
-    skills = models.CharField(max_length=255, blank=True)
+    skills =  models.CharField(max_length=30, blank=True, choices=SKILL_TYPE )
     referees = models.CharField(max_length=255, blank=True)
 
 
@@ -77,7 +92,7 @@ class Jobseeker(models.Model):
 
     @classmethod
     def update_jobseeker(self):
-        self.update()
+        self.update_jobseeker()
 
     @classmethod
     def search_jobseekers_by_job_category(cls, job_category):
@@ -86,26 +101,17 @@ class Jobseeker(models.Model):
         return jobseekers
 
 
-# class Employer(models.Model):
-#     user = models.OneToOneField(User, related_name='employer', on_delete=models.CASCADE)
-#     company_name = models.CharField(max_length=255, blank=True)
-#     email = models.CharField(max_length=255, blank=True)
-#     company_contact = models.CharField(max_length=255, blank=True)
-#     company_location = models.CharField(max_length=255, blank=True)
-#     company_bio = models.TextField(max_length=500, blank=True)
-#     address = models.CharField(max_length=255, blank=True)
-#     company_profile = CloudinaryField('image', null=True)
-
 class Employer(models.Model):
-    user = models.OneToOneField(
-        User, related_name='employer', on_delete=models.CASCADE)
-    name = models.CharField(max_length=255)
+    # user = models.OneToOneField(
+    #     User, related_name='is_employer', on_delete=models.CASCADE)
+    company_name = models.CharField(max_length=255)
     email = models.CharField(max_length=255)
-    contact = models.IntegerField()
-    location = models.IntegerField(blank=True)
+    contact = models.CharField(max_length=15)
+    location = models.CharField(max_length=120, blank=True)
     address = models.CharField(max_length=255)
     company_bio = models.CharField(max_length=255)
     company_pic = CloudinaryField('image')
+    website = models.CharField(blank=True, max_length=255)
 
     def save_employer(self):
         self.save()

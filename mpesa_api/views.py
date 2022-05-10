@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.shortcuts import render
 from django.http import HttpResponse
 import requests
 from requests.auth import HTTPBasicAuth
@@ -26,9 +27,9 @@ def lipa_na_mpesa_online(request):
         "Timestamp": LipanaMpesaPpassword.lipa_time,
         "TransactionType": "CustomerPayBillOnline",
         "Amount": 1,
-        "PartyA": 254702855081,  # replace with your phone number to get stk push
+        "PartyA": 254702855081,  # replace with andgular form phone number
         "PartyB": LipanaMpesaPpassword.Business_short_code,
-        "PhoneNumber": 254702855081,  # replace with your phone number to get stk push
+        "PhoneNumber": 254702855081,  # replace with Angular form phone number
         "CallBackURL": "https://sandbox.safaricom.co.ke/mpesa/",
         "AccountReference": "Worklinks Ltd",
         "TransactionDesc": "Testing stk push"

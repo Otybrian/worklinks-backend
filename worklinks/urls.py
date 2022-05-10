@@ -16,9 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-
 urlpatterns = [
-
     path('admin/', admin.site.urls),
     path('', include('user.urls')),
     path('api/', include('user.api.urls')),
@@ -27,5 +25,4 @@ urlpatterns = [
     path('rest-auth/registration/', include('rest_auth.registration.urls')),
     path('accounts/', include('allauth.urls')),
     path('api/v1/', include('mpesa_api.urls')),
-    
 ]

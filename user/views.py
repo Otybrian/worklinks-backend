@@ -1,8 +1,9 @@
 from rest_framework import generics, status
 from user.api import permissions
-from user.models import Advertisements, Token, Employer
+from user.models import Advertisements, Token, Employer, Profile, MpesaPayment
 from rest_framework.response import Response
-from user.api.serializers import UserSerializer, JobseekerSignupSerializer, EmployerSignupSerializer, AdvertisementSerializer
+from user.api.serializers import UserSerializer, JobseekerSignupSerializer, EmployerSignupSerializer, AdvertisementSerializer, JobseekerViewSerializer, JobSerializer
+from .serializers import UpdateEmployerProfileSerializer
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.views import APIView
 from user.api.permissions import IsJobseekerUser, IsEmployerUser
@@ -11,7 +12,7 @@ from django.http import HttpResponse, Http404,HttpResponseRedirect
 from email import message
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from .forms import SignupForm, PostForm
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.models import User
@@ -21,7 +22,6 @@ from .models import Profile, Post, Comment
 import random
 import json
 from django.contrib.auth import get_user_model
-
 from django.http import HttpResponse  
 from .mpesa_credentials import MpesaAccessToken, LipaNaMpesaPassword
 from .models import MpesaPayment
@@ -32,7 +32,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import login_required
 from .forms import PaymentForm
 import time
-from .serializers import MpesaPaymentSerializer,JobseekerSerializer, JobSerializer, SignUpSerializer,UpdateUserProfileSerializer
+from .serializers import MpesaPaymentSerializer,JobSerializer, SignUpSerializer,UpdateUserProfileSerializer
 from .models import *
 from decouple import config
 import json
@@ -46,7 +46,8 @@ from .token import account_activation_token
 from django.contrib.auth.models import User  
 from django.core.mail import EmailMessage  
 from django.contrib.auth import get_user_model
-from drf_yasg.views import get_schema_view
+from rest_framework.decorators import api_view
+from .forms import UpdateEmployerProfileForm
 User = get_user_model()
 # from user.forms import EmployerInformationForm
 
@@ -64,11 +65,18 @@ class SignUpViewSet(viewsets.ModelViewSet):
       serializer_class = SignUpSerializer
       queryset = User.objects.all()
 
+# class UpdateUserProfileViewSet(viewsets.ModelViewSet):  
+#       serializer_class = UpdateUserProfileSerializer
+#       queryset = Profile.objects.all()
+
 class UpdateUserProfileViewSet(viewsets.ModelViewSet):  
       serializer_class = UpdateUserProfileSerializer
       queryset = Profile.objects.all()
 
-<<<<<<< HEAD:user/views.py
+class UpdateEmployerProfileViewSet(viewsets.ModelViewSet):  
+      serializer_class = UpdateEmployerProfileSerializer
+      queryset = Employer.objects.all()
+
 class JobseekerSignupView(generics.GenericAPIView):
     serializer_class = JobseekerSignupSerializer
 
@@ -125,49 +133,7 @@ class JobseekerOnlyView(generics.RetrieveAPIView):
         return self.request.user
 
 
-class EmployerOnlyView(generics.RetrieveAPIView):
-    permission_classes=[permissions.IsEmployerUser]
-    serializer_class = UserSerializer
 
-    def get_object(self):
-        return self.request.user
-
-
-    # def post(request):
-    #     user = request.user
-    #     if request.method == 'POST':
-    #         form = EmployerInformationForm(request.POST, request.FILES)
-    #         form.is_valid()
-    #         update = form.save(commit=False)
-    #         form.employer = user
-    #         update.save()
-    #     return Response ({
-    #         'update': update
-    #     })
-
-
-=======
-class JobseekerViewSet(viewsets.ModelViewSet):  
-      serializer_class = JobseekerSerializer
-      queryset = Jobseeker.objects.all()
-
-from django_daraja.mpesa.core import MpesaClient
-
-def index(request):
-    cl = MpesaClient()
-    # Use a Safaricom phone number that you have access to, for you to be able to view the prompt.
-    phone_number = '07xxxxxxxx'
-    amount = 1
-    account_reference = 'reference'
-    transaction_desc = 'Description'
-    callback_url = request.build_absolute_uri(reverse('mpesa_stk_push_callback'))
-    response = cl.stk_push(phone_number, amount, account_reference, transaction_desc, callback_url)
-    return HttpResponse(response)
-
-def stk_push_callback(request):
-        data = request.body
-        # You can do whatever you want with the notification received from MPESA here.
->>>>>>> daraja:users/views.py
 
 def signup(request):  
     if request.method == 'POST':  
@@ -194,7 +160,7 @@ def signup(request):
             return HttpResponse('Please confirm your email address to complete the registration')  
     else:  
         form = SignupForm()  
-    return render(request, '', {'form': form}) 
+    return render(request, 'signup.html', {'form': form}) 
 
 def activate(request, uidb64, token):  
     User = get_user_model()  
@@ -216,9 +182,9 @@ def activate(request, uidb64, token):
 #     return render(request, 'profile')
 @login_required
 def profile(request):
-
+    queryset = Profile.objects.all()
     if request.method == 'POST':
-        form = UpdateUserProfileForm(request.POST)
+        form = UpdateUserProfileForm(request.POST, instance=User.profile)
         if form.is_valid():
             profile = form.save(commit=False)
             profile.user = request.user
@@ -348,3 +314,94 @@ class AdvertisementsView(APIView):
             return Response(serializers.data)
         else:
             return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EmployerOnlyView(generics.RetrieveAPIView):
+    permission_classes=[permissions.IsEmployerUser]
+    serializer_class = UserSerializer
+
+    def get_object(self):
+        return self.request.user
+
+@api_view(['POST'])
+def update_company(request):
+    serializer = UpdateEmployerProfileSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+    return Response(serializer.data)
+
+class JobseekersView(generics.ListAPIView):
+    # permission_classes=[permissions.IsEmployerUser]
+    serializer = JobseekerViewSerializer
+    queryset = Jobseeker.objects.all()
+    # def get_querryset(self):
+    #     jobseekers = Jobseeker.objects.all()
+    #     return jobseekers
+
+    def get(self, request, *args, **kwargs):
+        jobseekers = Jobseeker.objects.all()
+        serializer = JobseekerViewSerializer(jobseekers, many=True)
+        return Response (serializer.data)
+
+
+class JobView(APIView):
+    # permission_classes=[permissions.IsEmployerUser]
+    def get_querryset(self):
+        jobs = Job.objects.all()
+        return jobs
+
+    def get(self, request, *args, **kwargs):
+        jobs = Job.objects.all()
+        serializer = JobSerializer(jobs, many=True)
+        return Response (serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        job_data=request.data
+        new_job = Job.objects.create()
+        new_job.save()
+        serializer = JobSerializer(new_job)
+        return Response(serializer.data)
+
+
+@api_view(['GET'])
+def employerList(request):
+    '''Get all employer profiles'''
+    # user = request.user
+    employers = Employer.objects.all()
+    serializer = UpdateEmployerProfileSerializer(employers, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def employerDetail(request, pk):
+    '''Get specific employer profile'''
+    # user = request.user
+    employers = Employer.objects.get(id=pk)
+    serializer = UpdateEmployerProfileSerializer(employers, many=False)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+def employerProfileCreate(request):
+    '''Create employer profile'''
+    # user = request.user
+    serializer = UpdateEmployerProfileSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+    return Response(serializer.data)
+
+
+
+@login_required
+def profile_employer(request):
+    queryset = Employer.objects.all()
+    if request.method == 'POST':
+        form = UpdateEmployerProfileForm(request.POST, instance=User.employer)
+        if form.is_valid():
+            profile = form.save(commit=False)
+            profile.user = request.user
+            profile.save()
+            return redirect('dashboard')
+    else:
+        form = UpdateEmployerProfileForm()
+
+    return render(request, '', {'form':form})
+

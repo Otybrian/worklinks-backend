@@ -11,29 +11,14 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
-import environ
-import cloudinary.api
-import django_heroku
-from pathlib import Path
-import cloudinary.api
 import os
+import django_heroku
 import dj_database_url
 from decouple import config,Csv
-import os
-from decouple import config,Csv
-import cloudinary.uploader
-import cloudinary
-from django.conf import settings
-
-
-env = environ.Env(DEBUG=(bool, False))
-# reading .env file
-environ.Env.read_env()
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+# BASE_DIR = Path(__file__).resolve().parent.parent
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
@@ -46,10 +31,96 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-MODE=config("MODE", default="dev")
-SECRET_KEY = config('SECRET_KEY')
-DEBUG = config('DEBUG', default=False, cast=bool)
-# development
+
+# Application definition
+
+INSTALLED_APPS = [
+    'admin_interface',
+    'colorfield',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'user',
+    'mpesa_api',
+    'phonenumbers',
+    'bootstrap4',
+    'cloudinary',
+    'corsheaders',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'rest_auth',
+    'allauth',
+    'allauth.account',
+    'rest_auth.registration',
+    'django.contrib.sites',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+]
+
+
+SITE_ID = 1
+
+MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+CORS_ORIGIN_ALLOW_ALL = True
+
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+ROOT_URLCONF = 'worklinks.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.request',
+
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'worklinks.wsgi.application'
+
+
+# Database
+# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'newmerged',
+        'USERNAME': 'moringa',
+        'PASSWORD': 'user',
+    }
+}
+
 if config('MODE')=="dev":
    DATABASES = {
        'default': {
@@ -70,97 +141,11 @@ else:
        )
    }
 
+
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(db_from_env)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
-# Application definition
-
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'phonenumbers',
-    'rest_framework',
-    'user',
-    'bootstrap4',
-    'cloudinary',
-    'rest_framework.authtoken',
-    'rest_auth',
-    'allauth',
-    'allauth.account',
-    'rest_auth.registration',
-    'django.contrib.sites',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
-    'mpesa_api',
-    
-]
-
-SITE_ID = 1
-
-MIDDLEWARE = [
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-     "corsheaders.middleware.CorsMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
-
-ROOT_URLCONF = 'worklinks.urls'
-
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
-
-WSGI_APPLICATION = 'worklinks.wsgi.application'
-
-CORS_ALLOWED_ORIGINS = [
-
-    "http://127.0.0.1:8000",
-]
-CORS_ALLOW_METHODS = [
-    "DELETE",
-    "GET",
-    "OPTIONS",
-    "PATCH",
-    "POST",
-    "PUT",
-]
-# CORS_ALLOWED_ORIGIN_REGEXES: Sequence[str | Pattern[str]]
-# Database
-# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'worklinksbackend',
-        'USER': 'sharon',
-        'PASSWORD': '12345678',
-        # 'NAME': 'merged',
-        # 'USERNAME': 'moringa',
-        # 'PASSWORD': 'user',
-    }
-}
 
 AUTHENTICATION_BACKENDS = [
 
@@ -168,9 +153,6 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-# REST_FRAMEWORK = {
-#     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticated',)
-# }
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
 
@@ -188,60 +170,9 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-# Extra places for collectstatic to find static files.
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
-)
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATIC_URL = '/static/'
-# The Mpesa environment to use
-# Possible values: sandbox, production
 
-MPESA_ENVIRONMENT = 'sandbox'
 
-# Credentials for the daraja app
-
-MPESA_CONSUMER_KEY = 'mpesa_consumer_key'
-MPESA_CONSUMER_SECRET = 'mpesa_consumer_secret'
-
-#Shortcode to use for transactions. For sandbox  use the Shortcode 1 provided on test credentials page
-
-MPESA_SHORTCODE = 'mpesa_shortcode'
-
-# Shortcode to use for Lipa na MPESA Online (MPESA Express) transactions
-# This is only used on sandbox, do not set this variable in production
-# For sandbox use the Lipa na MPESA Online Shorcode provided on test credentials page
-
-MPESA_EXPRESS_SHORTCODE = 'mpesa_express_shortcode'
-
-# Type of shortcode
-# Possible values:
-# - paybill (For Paybill)
-# - till_number (For Buy Goods Till Number)
-
-MPESA_SHORTCODE_TYPE = 'paybill'
-
-# Lipa na MPESA Online passkey
-# Sandbox passkey is available on test credentials page
-# Production passkey is sent via email once you go live
-
-MPESA_PASSKEY = 'mpesa_passkey'
-
-# Username for initiator (to be used in B2C, B2B, AccountBalance and TransactionStatusQuery Transactions)
-
-MPESA_INITIATOR_USERNAME = 'initiator_username'
-
-# Plaintext password for initiator (to be used in B2C, B2B, AccountBalance and TransactionStatusQuery Transactions)
-
-MPESA_INITIATOR_SECURITY_CREDENTIAL = 'initiator_security_credential'
-
-#Email notification
-EMAIL_USE_TLS = True  
-EMAIL_HOST = 'smtp.gmail.com'  
-EMAIL_HOST_USER = 'moishadrack@gmail.com'  
-EMAIL_HOST_PASSWORD = 'MkelorD12'  
-EMAIL_PORT = 587  
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
@@ -259,34 +190,34 @@ USE_I18N = True
 
 STATIC_URL = 'static/'
 
+
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 STATICFILES_DIRS = (
     os.path.join(PROJECT_ROOT, 'static'),
 )
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ]
 }
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 
 AUTH_USER_MODEL = 'user.User'
-
-User = settings.AUTH_USER_MODEL
-
 ACCOUNT_UNIQUE_EMAIL = True
 
-cloudinary.config( 
-  cloud_name = "moiws", 
-  api_key = "656941885515644", 
-  api_secret = "YY5igLwW3kkB7lh8-1_TWtUdwlo" 
-)
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+STATIC_URL = '/static/'
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # configuring the location for media
 MEDIA_URL = '/media/'
